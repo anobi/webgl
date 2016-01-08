@@ -27,7 +27,9 @@ function resizeWindow(){
 var shader = new THREE.ShaderMaterial({
     uniforms: THREE.UniformsUtils.merge([
         THREE.UniformsLib.lights,
-        {}
+        {
+            diffuse: {type: 'c', value: new THREE.Color(0xBBBBBB)}
+        }
     ]),
     lights: true,
     vertexShader: document.getElementById('vertexShader').text,
