@@ -42,7 +42,7 @@
                     vec3 lightDirection = normalize(vPos - pointLightPosition[i]);
                     lightVal.rgb += clamp(dot(-lightDirection, vNormal), 0.0, 1.0) * pointLightColor[i];
                 }
-                gl_FragColor = vec4(0.8, 0.8, 0.8, 1.0)* lightVal;
+                gl_FragColor = ambient + vec4(0.8, 0.8, 0.8, 1.0)* lightVal;
             }
         </script>
 
