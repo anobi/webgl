@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<style type="text/css">
+			body {margin: 0;}
+			canvas {width: 100%; height: 100%;}
+		</style>
+	</head>
+	<body>
+		<script type="text/javascript" src="three.min.js"></script>
+        <script type="x-shader/x-vertex" id="vertexShader">
+
+            varying vec3 vNormal;
+            varying vec3 vPos;
+
+            void main() {
+                vNormal = normalMatrix * normal;
+                vPos = (modelViewMatrix * vec4(position, 1.0)).xyz;
+                gl_Position = projectionMatrix *
+                    modelViewMatrix *
+                    vec4(position, 1.0);
+            }
+        </script>
+        <script type="x-shader/x-fragment" id="lambertShader">
+            precision highp float;
+
+            uniform vec3 diffuse;
+
+            varying vec3 vNormal;
+            varying vec3 vPos;
+
+            uniform vec3 ambientLightColor;
+            uniform vec3 pointLightPosition[MAX_POINT_LIGHTS];
+            uniform vec3 pointLightColor[MAX_POINT_LIGHTS];
+            uniform float pointLightDistance[MAX_POINT_LIGHTS];
+
+            void main()
+            {
+                vec3 lights = vec3(0.0, 0.0, 0.0);
+
+                for(int i = 0; i < MAX_POINT_LIGHTS; i++)
+                {
+                    float r = 5.0;
+                    float d = pointLightDistance[i];
+
+                    float att = clamp(1.0 - d*d/(r*r), 0.0, 1.0); att *= att;
+                    
+                    vec3 lightDirection = normalize(pointLightPosition[i] - vPos);
+                    lights += clamp(dot(lightDirection, vNormal), 0.0, 1.0) * pointLightColor[i] * att;
+                }
+                gl_FragColor = vec4(ambientLightColor + diffuse * lights, 1.0);
+            }
+        </script>
+
+        <script type="x-shader/x-fragment" id="phongShader">
+            precision highp float;
+
+            uniform vec3 diffuse;
+
+            varying vec3 vNormal;
+            varying vec3 vPos;
+
+            uniform vec3 ambientLightColor;
+            uniform vec3 pointLightPosition[MAX_POINT_LIGHTS];
+            uniform vec3 pointLightColor[MAX_POINT_LIGHTS];
+            uniform float pointLightDistance[MAX_POINT_LIGHTS];
+
+            void main()
+            {
+                vec3 lights = vec3(0.0, 0.0, 0.0);
+
+                for(int i = 0; i < MAX_POINT_LIGHTS; i++)
+                {
+                    float r = 5.0;
+                    float d = pointLightDistance[i];
+
+                    float att = clamp(1.0 - d*d/(r*r), 0.0, 1.0); att *= att;
+                    
+                    vec3 lightDirection = normalize(pointLightPosition[i] - vPos);
+                    lights += clamp(dot(lightDirection, vNormal), 0.0, 1.0) * pointLightColor[i] * att;
+                }
+                gl_FragColor = vec4(ambientLightColor + diffuse * lights, 1.0);
+            }
+        </script>
+		<script type="text/javascript" src="3.js"></script>
+	</body>
+</html>
