@@ -41,13 +41,20 @@
 
                 for(int i = 0; i < MAX_POINT_LIGHTS; i++)
                 {
+                    float r = 5.0;
+                    float distance = pointLightDistance[i];
+                    float d = max(distance - r, 0.0);
+
+                    float denom = d/r + 1.0;
+                    float att = 1.0 / (denom*denom);
+                    
                     vec3 lightDirection = normalize(pointLightPosition[i] - vPos);
-                    lights += clamp(dot(lightDirection, vNormal), 0.0, 1.0) * pointLightColor[i];
+                    lights += clamp(dot(lightDirection, vNormal), 0.0, 1.0) * pointLightColor[i] * att;
                 }
                 gl_FragColor = vec4(ambientLightColor + diffuse * lights, 1.0);
             }
         </script>
 
-		<script type="text/javascript" src="1.js"></script>
+		<script type="text/javascript" src="2.js"></script>
 	</body>
 </html>
