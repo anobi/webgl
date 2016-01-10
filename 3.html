@@ -10,13 +10,17 @@
 	<body>
 		<script type="text/javascript" src="three.min.js"></script>
         <script type="x-shader/x-vertex" id="vertexShader">
+            precision highp float;
 
             varying vec3 vNormal;
             varying vec3 vPos;
+            varying vec3 lightDir;
 
             void main() {
                 vNormal = normalMatrix * normal;
                 vPos = (modelViewMatrix * vec4(position, 1.0)).xyz;
+
+                
                 gl_Position = projectionMatrix *
                     modelViewMatrix *
                     vec4(position, 1.0);
@@ -72,7 +76,6 @@
             void main()
             {
                 vec3 lights = ambientLightColor;
-                vec3 viewDir = normalize(cameraPosition - vPos);
 
                 for(int i = 0; i < MAX_POINT_LIGHTS; i++)
                 {
@@ -86,19 +89,21 @@
                     float lambert = clamp(dot(vNormal, lightDirection), 0.0, 1.0);
                     lights += pointLightColor[i] * lambert * att;
 
-                    //specular
-                    //if(dot(lightDirection, vNormal) > 0.0){
-                        vec3 H = normalize(lightDirection + viewDir);
-                        vec3 R = 2.0 * dot(vNormal, lightDirection) * vNormal - lightDirection;
+                    //specular choose your own adventure: phong or blinn-phong
+                    if(dot(vNormal, lightDirection) > 0.0){
+
+                        vec3 L = normalize(-vPos);
 
                         //phong:
-                        float spec = pow(max(dot(R, viewDir), 0.0), shininess);
+                        vec3 R = reflect(-lightDirection, vNormal);
+                        float spec = pow(max(dot(R, L), 0.0), shininess);
 
                         //blinn-phong:
+                        //vec3 H = normalize(lightDirection + L);
                         //float spec = pow(max(dot(vNormal, H), 0.0), shininess); //the last bit is the shininess
 
-                        lights += pointLightColor[i] * spec;
-                    //}
+                        lights += pointLightColor[i] * spec * att;
+                    }
                 }
                 gl_FragColor = vec4(diffuse * lights, 1.0);
             }
