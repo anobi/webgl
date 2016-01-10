@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<style type="text/css">
+			body {margin: 0;}
+			canvas {width: 100%; height: 100%;}
+		</style>
+	</head>
+	<body>
+		<script type="text/javascript" src="three.min.js"></script>
+		<script type="text/javascript" src="OrbitControls.js"></script>
+        <script type="x-shader/x-vertex" id="vertexShader">
+            precision highp float;
+
+            varying vec3 vNormal;
+            varying vec3 vPos;
+
+            void main() {
+                vNormal = normalMatrix * normal;
+                vPos = (modelViewMatrix * vec4(position, 1.0)).xyz;
+                
+                gl_Position = projectionMatrix *
+                    modelViewMatrix *
+                    vec4(position, 1.0);
+            }
+        </script>
+        <script type="x-shader/x-fragment" id="phongShader">
+            precision highp float;
+
+            uniform vec3 diffuse, specularity;
+            uniform float diffuse_intensity;
+            uniform float specular_intensity, specular_hardness;
+
+            varying vec3 vNormal;
+            varying vec3 vPos;
+
+            uniform mat4 world;
+
+            uniform vec3 ambientLightColor;
+            uniform vec3 pointLightPosition[MAX_POINT_LIGHTS];
+            uniform vec3 pointLightColor[MAX_POINT_LIGHTS];
+            uniform float pointLightDistance[MAX_POINT_LIGHTS];
+
+            void main()
+            {
+                vec3 lights = ambientLightColor;
+
+                for(int i = 0; i < MAX_POINT_LIGHTS; i++)
+                {
+                    vec3 lightDir = pointLightPosition[i] - vPos;
+                    float r = 5.0;
+                    float d = pointLightDistance[i];
+
+                    vec3 L = normalize(lightDir);
+                    vec3 N = normalize(vNormal);
+
+                    //diffuse
+                    float att = clamp(1.0 - d*d/(r*r), 0.0, 1.0); att *= att;
+                    float lambert = clamp(dot(N, L), 0.0, 1.0);
+                    lights += pointLightColor[i] * lambert * att;
+
+                    //specular choose your own adventure: phong or blinn-phong
+                    if(dot(vNormal, lightDir) > 0.0){
+
+                        //phong:
+                        vec3 E = normalize(-vPos);
+                        vec3 R = reflect(-L, N);
+                        float spec = pow(max(dot(R, E), 0.0), specular_hardness);
+
+                        //blinn-phong, faster but not as good looking:
+                        //vec3 H = normalize(lightDirection + L);
+                        //float spec = pow(max(dot(vNormal, H), 0.0), specular_hardness); //the last bit is the shininess
+
+                        lights += pointLightColor[i] * specularity * specular_intensity * spec * att;
+                    }
+                }
+                gl_FragColor = vec4(diffuse * diffuse_intensity * lights, 1.0);
+            }
+        </script>
+		<script type="text/javascript" src="4.js"></script>
+	</body>
+</html>
