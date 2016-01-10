@@ -120,7 +120,7 @@ function render() {
     l3.position.y = Math.cos(timer) * 4;
     l4.position.y = Math.cos(timer) * 4;
 
-    camera.position.x = Math.sin(timer) * 5;
+    camera.position.x = Math.sin(timer) * 50;
     camera.lookAt(scene.position);
 
 	renderer.render(scene, camera);
