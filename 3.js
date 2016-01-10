@@ -41,7 +41,8 @@ var phong = new THREE.ShaderMaterial({
     uniforms: THREE.UniformsUtils.merge([
         THREE.UniformsLib.lights,
         {
-            diffuse: {type: 'c', value: new THREE.Color(0xBBBBBB)}
+            diffuse: {type: 'c', value: new THREE.Color(0xBBBBBB)},
+            shininess: {type: 'f', value : 16.0}
         }
     ]),
     lights: true,
@@ -81,28 +82,27 @@ function sceneSetup(){
     l4.position.set(20, 0, -20);
     scene.add(l4);
 
-    var ground = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000),
-                                lambert);
+    var ground = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), phong);
     ground.position.set(0, -5, 0);
     ground.rotation.x = -90 * (Math.PI / 180);
     scene.add(ground);
 
     //lambert shaded geos
-    lcube = new THREE.Mesh(new THREE.BoxGeometry(5, 5, 5), lambert);
-    lcube.position.set(12, 0, -12);
+    lcube = new THREE.Mesh(new THREE.BoxGeometry(5, 5, 5), phong);
+    lcube.position.set(-20, 0, 30);
     scene.add(lcube);
 
-    lsphere = new THREE.Mesh(new THREE.SphereGeometry(5, 8, 8), lambert);
-    lsphere.position.set(-12, 0, -12);
+    lsphere = new THREE.Mesh(new THREE.SphereGeometry(5, 8, 8), phong);
+    lsphere.position.set(-20, 0, -12);
     scene.add(lsphere);
 
     //new phong shaded geos
-    pcube = new THREE.Mesh(new THREE.BoxGeometry(5, 5, 5), phong);
-    pcube.position.set(12, 0, 12);
+    pcube = new THREE.Mesh(new THREE.BoxGeometry(5, 5, 5), lambert);
+    pcube.position.set(20, 0, 30);
     scene.add(pcube);
 
-    psphere = new THREE.Mesh(new THREE.SphereGeometry(5, 8, 8), phong);
-    psphere.position.set(-12, 0, 12);
+    psphere = new THREE.Mesh(new THREE.SphereGeometry(5, 8, 8), lambert);
+    psphere.position.set(20, 0, -12);
     scene.add(psphere);
 
     lambert.needsUpdate = true;
@@ -120,6 +120,7 @@ function render() {
     l3.position.y = Math.cos(timer) * 4;
     l4.position.y = Math.cos(timer) * 4;
 
+    camera.position.x = Math.sin(timer) * 5;
     camera.lookAt(scene.position);
 
 	renderer.render(scene, camera);
