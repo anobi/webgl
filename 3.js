@@ -42,7 +42,11 @@ var phong = new THREE.ShaderMaterial({
         THREE.UniformsLib.lights,
         {
             diffuse: {type: 'c', value: new THREE.Color(0xBBBBBB)},
-            shininess: {type: 'f', value : 16.0}
+            diffuse_intensity: {type: 'f', value: 0.8},
+
+            specularity: {type: 'c', value: new THREE.Color(0xFFFFFF)},
+            specular_intensity: {type: 'f', value : 0.5},
+            specular_hardness: {type: 'f', value : 60.0}
         }
     ]),
     lights: true,
