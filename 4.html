@@ -15,11 +15,20 @@
 
             varying vec3 vNormal;
             varying vec3 vPos;
+			varying vec4 vShadowCoord[MAX_SHADOWS];
+
+			uniform float shadowDarkness[MAX_SHADOWS];
+			uniform mat4 shadowMatrix[MAX_SHADOWS];
 
             void main() {
                 vNormal = normalMatrix * normal;
                 vPos = (modelViewMatrix * vec4(position, 1.0)).xyz;
-                
+
+                for(int i = 0; i < MAX_SHADOWS; i++){
+                    vShadowCoord[i] = shadowMatrix[i]
+                    * (modelMatrix * vec4(position, 1.0));
+                }
+
                 gl_Position = projectionMatrix *
                     modelViewMatrix *
                     vec4(position, 1.0);
@@ -34,47 +43,84 @@
 
             varying vec3 vNormal;
             varying vec3 vPos;
+			varying vec4 vShadowCoord[MAX_SHADOWS];
 
             uniform mat4 world;
 
             uniform vec3 ambientLightColor;
-            uniform vec3 pointLightPosition[MAX_POINT_LIGHTS];
-            uniform vec3 pointLightColor[MAX_POINT_LIGHTS];
-            uniform float pointLightDistance[MAX_POINT_LIGHTS];
+
+            uniform vec3    pointLightColor       [MAX_POINT_LIGHTS];
+            uniform vec3    pointLightPosition    [MAX_POINT_LIGHTS];
+            uniform float   pointLightDistance    [MAX_POINT_LIGHTS];
+            uniform float   pointLightDecay       [MAX_POINT_LIGHTS];
+
+            uniform vec3    spotLightColor      [MAX_SPOT_LIGHTS];
+            uniform vec3    spotLightPosition   [MAX_SPOT_LIGHTS];
+            uniform vec3    spotLightDirection  [MAX_SPOT_LIGHTS];
+            uniform float   spotLightDistance   [MAX_SPOT_LIGHTS];
+            uniform float   spotLightAngleCos   [MAX_SPOT_LIGHTS];
+            uniform float   spotLightExponent   [MAX_SPOT_LIGHTS];
+            uniform float   spotLightDecay      [MAX_SPOT_LIGHTS];
+
+            vec3 lighting(vec3 position, float distance, vec3 color){
+                vec3 value;
+                vec3 lightDir = position - vPos;
+                float r = 5.0;
+                float d = distance;
+                vec3 L = normalize(lightDir);
+                vec3 N = normalize(vNormal);
+
+                //diffuse
+                float att = clamp(1.0 - d*d/(r*r), 0.0, 1.0); att *= att;
+                float lambert = clamp(dot(N, L), 0.0, 1.0);
+                value += color * lambert * att;
+
+                //specular choose your own adventure: phong or blinn-phong
+                if(dot(vNormal, lightDir) > 0.0){
+
+                    //phong:
+                    vec3 E = normalize(-vPos);
+                    vec3 R = reflect(-L, N);
+                    float spec = pow(max(dot(R, E), 0.0), specular_hardness);
+
+                    //blinn-phong, faster but not as good looking:
+                    //vec3 H = normalize(lightDirection + L);
+                    //float spec = pow(max(dot(vNormal, H), 0.0), specular_hardness); //the last bit is the shininess
+
+                    value += color * specularity * specular_intensity * spec * att;
+                }
+
+                return value;
+            }
 
             void main()
             {
-                vec3 lights = ambientLightColor;
+                /*******
+                Lighting
+                ********/
+                vec3 lights = vec3(1.0, 1.0, 1.0);
 
+                //ambient light
+                lights = ambientLightColor;
+
+                //point lights
                 for(int i = 0; i < MAX_POINT_LIGHTS; i++)
                 {
-                    vec3 lightDir = pointLightPosition[i] - vPos;
-                    float r = 5.0;
-                    float d = pointLightDistance[i];
-
-                    vec3 L = normalize(lightDir);
-                    vec3 N = normalize(vNormal);
-
-                    //diffuse
-                    float att = clamp(1.0 - d*d/(r*r), 0.0, 1.0); att *= att;
-                    float lambert = clamp(dot(N, L), 0.0, 1.0);
-                    lights += pointLightColor[i] * lambert * att;
-
-                    //specular choose your own adventure: phong or blinn-phong
-                    if(dot(vNormal, lightDir) > 0.0){
-
-                        //phong:
-                        vec3 E = normalize(-vPos);
-                        vec3 R = reflect(-L, N);
-                        float spec = pow(max(dot(R, E), 0.0), specular_hardness);
-
-                        //blinn-phong, faster but not as good looking:
-                        //vec3 H = normalize(lightDirection + L);
-                        //float spec = pow(max(dot(vNormal, H), 0.0), specular_hardness); //the last bit is the shininess
-
-                        lights += pointLightColor[i] * specularity * specular_intensity * spec * att;
-                    }
+                    vec3 pos = pointLightPosition[i];
+                    vec3 col = pointLightColor[i];
+                    float dist = pointLightDistance[i];
+                    lights += lighting(pos, dist, col);
                 }
+
+                //spot lights
+                for(int i = 0; i < MAX_SPOT_LIGHTS; i++)
+                {
+                    vec3 pos = spotLightPosition[i];
+                    vec3 col = spotLightColor[i];
+                    float dist = spotLightDistance[i];
+                    lights += lighting(pos, dist, col);
+                }
+
                 gl_FragColor = vec4(diffuse * diffuse_intensity * lights, 1.0);
             }
         </script>
