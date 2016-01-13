@@ -8,13 +8,12 @@ function init(){
     renderer = new THREE.WebGLRenderer();
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-    //for reflections
-    cubeCamera = new THREE.CubeCamera(1, 1000, 256);
-
     //configure things
     renderer.setClearColor(0x000000);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.antialias = true;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.BasicShadowMap;
 
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.maxPolarAngle = Math.PI/2;
@@ -31,8 +30,6 @@ function resizeWindow(){
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
-
-
 
 THREE.PointLight.prototype.Visualize = function(){
     this.sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 16), new THREE.MeshBasicMaterial({color: this.color}));
@@ -90,8 +87,6 @@ function sceneSetup(){
                 specularity: {type: 'c', value: new THREE.Color(0xFFFFFF)},
                 specular_intensity: {type: 'f', value : 0.5},
                 specular_hardness: {type: 'f', value : 60.0},
-
-                envMap: cubeCamera.renderTarget
             }
         ]),
         lights: true,
@@ -131,11 +126,6 @@ function render() {
     l1.position.y = Math.sin(timer) * 4;
     l2.position.y = Math.sin(timer / 2) * 4;
     l3.position.y = Math.cos(timer) * 4;
-
-    lsphere.setVisible = false;
-    cubeCamera.position.copy( lsphere.position );
-    cubeCamera.updateCubeMap(renderer, scene);
-    lsphere.setVisible = true;
 
 	renderer.render(scene, camera);
     controls.update();
