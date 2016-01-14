@@ -38,6 +38,7 @@ THREE.PointLight.prototype.Visualize = function(){
 
 THREE.SpotLight.prototype.Visualize = function(){
     this.cylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 1, 2, 16), new THREE.MeshBasicMaterial({color: this.color}));
+    this.cylinder.rotation = this.rotation;
     this.add(this.cylinder);
 };
 
@@ -69,7 +70,7 @@ function sceneSetup(){
     l3.position.set(25, 0, 0);
     scene.add(l3);
 
-    l4 = new THREE.SpotLight(0xFFFFFF, 1, 50, 25);
+    l4 = new THREE.SpotLight(0xFFFFFF, 1, 50, 24, 1.0, 10.0);
     l4.Visualize();
     l4.castShadow = true;
     l4.position.set(0, 30, -30);
@@ -126,6 +127,8 @@ function render() {
     l1.position.y = Math.sin(timer) * 4;
     l2.position.y = Math.sin(timer / 2) * 4;
     l3.position.y = Math.cos(timer) * 4;
+    l4.position.x = Math.sin(timer / 2) * 10;
+    l4.angle = Math.sin(timer / 2);
 
 	renderer.render(scene, camera);
     controls.update();

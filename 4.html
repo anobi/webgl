@@ -79,6 +79,10 @@
                 return value;
             }
 
+            float attenuation(float distance){
+                return clamp(1.0 / distance * distance, 0.0, 1.0);
+            }
+
             vec3 pointLight(vec3 position, vec3 color) {
                 vec3 value;
                 float r = 69.0; //TODO: get from light radius.. that might be the lightDistance actually?
@@ -88,32 +92,23 @@
                 vec3 N = normalize(vNormal);
 
                 //diffuse
-                float att = clamp(1.0 - d*d/(r*r), 0.0, 1.0);// att *= att; //???
                 float lambert = clamp(dot(N, L), 0.0, 1.0);
                 value += color * lambert;
 
                 value += color * addSpecular(L, N);
 
-                return value * att;
+                return value * attenuation(d);
             }
 
 			vec3 spotLight(vec3 position, vec3 color, vec3 direction, float cutoff){
                 vec3 value;
-                float r = 69.0;
-
-                float d = distance(position, vPos);
                 vec3 L = normalize(position - vPos);
-                vec3 N = normalize(vNormal);
+                float angle = dot(L,direction);
 
                 //cone check
-                if(dot(L,direction) > cutoff) {
-                    //diffuse
-                    float att = clamp(1.0 - d*d/(r*r), 0.0, 1.0);// att *= att; //???
-                    float lambert = max(dot(N, L), 0.0);
-
-                    value += color * lambert * att;
-
-                    value += color * addSpecular(L, N) * att;
+                if(angle > cutoff) {
+                    float asd = (1.0 - (1.0 - angle) * 1.0 / (1.0 - cutoff));
+                    value += pointLight(position, color) * asd;
                 }
                 return value;
 			}
