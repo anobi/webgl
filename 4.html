@@ -43,7 +43,7 @@
 
             varying vec3 vNormal;
             varying vec3 vPos;
-			varying vec4 vShadowCoord[MAX_SHADOWS];
+            varying vec4 vShadowCoord[MAX_SHADOWS];
 
             uniform mat4 world;
 
@@ -79,25 +79,44 @@
                 return value;
             }
 
-            vec3 lighting(vec3 position, vec3 color) {
+            vec3 pointLight(vec3 position, vec3 color) {
                 vec3 value;
                 float r = 69.0; //TODO: get from light radius.. that might be the lightDistance actually?
 
-                //this is wrong
-                //that distance is actually the max distance that the light can travel
                 float d = distance(position, vPos);
                 vec3 L = normalize(position - vPos);
                 vec3 N = normalize(vNormal);
 
                 //diffuse
-                float att = clamp(1.0 - d*d/(r*r), 0.0, 1.0); att *= att;
+                float att = clamp(1.0 - d*d/(r*r), 0.0, 1.0);// att *= att; //???
                 float lambert = clamp(dot(N, L), 0.0, 1.0);
                 value += color * lambert;
 
-                value += addSpecular(L, N);
+                value += color * addSpecular(L, N);
 
                 return value * att;
             }
+
+			vec3 spotLight(vec3 position, vec3 color, vec3 direction, float cutoff){
+                vec3 value;
+                float r = 69.0;
+
+                float d = distance(position, vPos);
+                vec3 L = normalize(position - vPos);
+                vec3 N = normalize(vNormal);
+
+                //cone check
+                if(dot(L,direction) > cutoff) {
+                    //diffuse
+                    float att = clamp(1.0 - d*d/(r*r), 0.0, 1.0);// att *= att; //???
+                    float lambert = max(dot(N, L), 0.0);
+
+                    value += color * lambert * att;
+
+                    value += color * addSpecular(L, N) * att;
+                }
+                return value;
+			}
 
             void main()
             {
@@ -114,7 +133,7 @@
                 {
                     vec3 pos = pointLightPosition[i];
                     vec3 col = pointLightColor[i];
-                    lights += lighting(pos, col);
+                    lights += pointLight(pos, col);
                 }
 
                 //spot lights
@@ -122,7 +141,9 @@
                 {
                     vec3 pos = spotLightPosition[i];
                     vec3 col = spotLightColor[i];
-                    lights += lighting(pos, col);
+                    vec3 dir = spotLightDirection[i];
+                    float angle = spotLightAngleCos[i];
+                    lights += spotLight(pos, col, dir, angle);
                 }
 
                 gl_FragColor = vec4(diffuse * diffuse_intensity * lights, 1.0);

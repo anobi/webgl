@@ -69,10 +69,10 @@ function sceneSetup(){
     l3.position.set(25, 0, 0);
     scene.add(l3);
 
-    l4 = new THREE.SpotLight(0xFFFFFF, 1, 1);
+    l4 = new THREE.SpotLight(0xFFFFFF, 1, 50, 25);
     l4.Visualize();
     l4.castShadow = true;
-    l4.position.set(0, 25, 0);
+    l4.position.set(0, 30, -30);
 
     scene.add(l4);
 
